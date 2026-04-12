@@ -20,7 +20,6 @@ export function AppverseFooter() {
               </div>
               <p className="max-w-sm text-sm text-neutral-400">
                 An AI-powered city simulation platform for climate resilience and sustainable urban planning.
-                Currently in development.
               </p>
             </div>
 
@@ -59,7 +58,7 @@ export function AppverseFooter() {
 
           {/* Bottom bar */}
           <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs text-neutral-500 sm:flex-row">
-            <p>2025 Civic Digital Twin. In development.</p>
+            <p>&copy; 2026 Civic Digital Twin. All rights reserved.</p>
             <div className="flex items-center gap-6">
               <Link href="/privacy" className="hover:text-lime-300 transition-colors">
                 Privacy Policy

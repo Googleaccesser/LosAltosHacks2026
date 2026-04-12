@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { ScrollReveal } from "./scroll-reveal"
 import {
-  Send, Bot, User, Sparkles, MapPin, RefreshCw, Shield, Zap, Target, TrendingUp,
+  Send, Bot, User, Sparkles, MapPin, Shield, Zap, Target, TrendingUp,
   ArrowDown, ArrowUp, Thermometer, Wind, Droplets, AlertTriangle, Activity,
   CheckSquare, Square, ChevronDown, ChevronUp, FileText,
 } from "lucide-react"
@@ -315,7 +315,7 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 scroll-smooth">
         {error && (
           <div className="flex gap-2.5 justify-start">
             <div className="w-7 h-7 rounded-full bg-red-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -780,6 +780,25 @@ export function SimulationPreview() {
   const [mapMounted, setMapMounted] = useState(false)
   const [simResult, setSimResult] = useState<SimResult | null>(null)
   const [markerUpdate, setMarkerUpdate] = useState<MarkerUpdate | null>(null)
+  const sectionRef = useRef<HTMLElement>(null)
+
+  // Auto-load map when section scrolls into view
+  useEffect(() => {
+    if (mapMounted) return
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setMapMounted(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [mapMounted])
 
   const handleSimResult = useCallback((result: SimResult) => {
     setSimResult(result)
@@ -798,7 +817,7 @@ export function SimulationPreview() {
   }, [])
 
   return (
-    <section id="simulation" className="py-16 sm:py-24 relative overflow-hidden">
+    <section ref={sectionRef} id="simulation" className="py-16 sm:py-24 relative overflow-hidden">
       <style>{`
         @keyframes slideInFromTop {
           from { opacity: 0; transform: translateY(-12px); }
@@ -846,15 +865,8 @@ export function SimulationPreview() {
                 <div className="relative flex-1 min-h-[360px]">
                   {!mapMounted && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/40 z-10">
-                      <MapPin className="w-8 h-8 text-lime-300/50" />
+                      <div className="w-8 h-8 border-2 border-lime-400/30 border-t-lime-400 rounded-full animate-spin" />
                       <p className="text-sm text-neutral-400">Loading interactive map...</p>
-                      <button
-                        onClick={() => setMapMounted(true)}
-                        className="mt-1 bg-lime-400 text-black text-sm font-semibold px-5 py-2 rounded-full hover:bg-lime-300 transition-colors flex items-center gap-2"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        Load Map
-                      </button>
                     </div>
                   )}
                   {mapMounted && (
@@ -879,7 +891,7 @@ export function SimulationPreview() {
               </div>
 
               {/* Middle: AI Copilot Chat */}
-              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col" style={{ minHeight: 480 }}>
+              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col" style={{ height: 520 }}>
                 <AICopilotChat onSimResult={handleSimResult} />
               </div>
 
