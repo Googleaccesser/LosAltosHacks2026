@@ -12,21 +12,21 @@ import { AnimatedCounter } from "./animated-counter"
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const cityHotspots = [
-  { id: 1, name: "Chicago",     lat: 41.878, lng: -87.629,  risk: 72, pop: 2696000, temp: 38, type: "critical" },
-  { id: 2, name: "Phoenix",     lat: 33.448, lng: -112.074, risk: 91, pop: 1608000, temp: 47, type: "extreme"  },
-  { id: 3, name: "Houston",     lat: 29.760, lng: -95.369,  risk: 68, pop: 2304000, temp: 40, type: "high"     },
-  { id: 4, name: "New York",    lat: 40.712, lng: -74.005,  risk: 55, pop: 8336000, temp: 35, type: "high"     },
-  { id: 5, name: "Miami",       lat: 25.775, lng: -80.208,  risk: 83, pop: 478000,  temp: 43, type: "critical" },
-  { id: 6, name: "Los Angeles", lat: 34.052, lng: -118.243, risk: 61, pop: 3979000, temp: 42, type: "high"     },
-  { id: 7, name: "Denver",      lat: 39.739, lng: -104.984, risk: 44, pop: 749000,  temp: 34, type: "medium"   },
-  { id: 8, name: "Seattle",     lat: 47.606, lng: -122.332, risk: 32, pop: 737000,  temp: 29, type: "medium"   },
+  { id: 1, name: "Chicago", lat: 41.878, lng: -87.629, risk: 72, pop: 2696000, temp: 38, type: "critical" },
+  { id: 2, name: "Phoenix", lat: 33.448, lng: -112.074, risk: 91, pop: 1608000, temp: 47, type: "extreme" },
+  { id: 3, name: "Houston", lat: 29.760, lng: -95.369, risk: 68, pop: 2304000, temp: 40, type: "high" },
+  { id: 4, name: "New York", lat: 40.712, lng: -74.005, risk: 55, pop: 8336000, temp: 35, type: "high" },
+  { id: 5, name: "Miami", lat: 25.775, lng: -80.208, risk: 83, pop: 478000, temp: 43, type: "critical" },
+  { id: 6, name: "Los Angeles", lat: 34.052, lng: -118.243, risk: 61, pop: 3979000, temp: 42, type: "high" },
+  { id: 7, name: "Denver", lat: 39.739, lng: -104.984, risk: 44, pop: 749000, temp: 34, type: "medium" },
+  { id: 8, name: "Seattle", lat: 47.606, lng: -122.332, risk: 32, pop: 737000, temp: 29, type: "medium" },
 ]
 
 const riskConfig = {
-  extreme:  { color: "#ef4444", glow: "rgba(239,68,68,0.6)",   label: "Extreme"  },
-  critical: { color: "#f97316", glow: "rgba(249,115,22,0.6)",  label: "Critical" },
-  high:     { color: "#eab308", glow: "rgba(234,179,8,0.6)",   label: "High"     },
-  medium:   { color: "#84cc16", glow: "rgba(132,204,22,0.6)",  label: "Medium"   },
+  extreme: { color: "#ef4444", glow: "rgba(239,68,68,0.6)", label: "Extreme" },
+  critical: { color: "#f97316", glow: "rgba(249,115,22,0.6)", label: "Critical" },
+  high: { color: "#eab308", glow: "rgba(234,179,8,0.6)", label: "High" },
+  medium: { color: "#84cc16", glow: "rgba(132,204,22,0.6)", label: "Medium" },
 }
 
 function scoreToLevel(score: number): keyof typeof riskConfig {
@@ -37,10 +37,10 @@ function scoreToLevel(score: number): keyof typeof riskConfig {
 }
 
 const impactMetrics = [
-  { icon: Shield,    label: "Heat Risk Reduction",  value: 35, suffix: "%", direction: "down", description: "Average reduction in heat-related health risks across simulated city scenarios using optimized cooling infrastructure placement.", color: "text-green-400",  bgColor: "bg-green-400/10",  borderColor: "border-green-400/20"  },
-  { icon: Zap,       label: "Emergency Response",   value: 48, suffix: "%", direction: "up",   description: "Improvement in emergency response times when resources are positioned using AI-optimized placement derived from population vulnerability maps.", color: "text-blue-400",   bgColor: "bg-blue-400/10",   borderColor: "border-blue-400/20"   },
-  { icon: Target,    label: "Resource Optimization",value: 27, suffix: "%", direction: "down", description: "Reduction in redundant infrastructure spend through AI-driven analysis identifying overlap zones and underserved areas simultaneously.", color: "text-orange-400", bgColor: "bg-orange-400/10", borderColor: "border-orange-400/20" },
-  { icon: TrendingUp,label: "Planning Speed",       value: 10, suffix: "x", direction: "up",   description: "Faster scenario evaluation compared to traditional planning methods — what takes months of analysis now runs in seconds.", color: "text-lime-400",   bgColor: "bg-lime-400/10",   borderColor: "border-lime-400/20"   },
+  { icon: Shield, label: "Heat Risk Reduction", value: 35, suffix: "%", direction: "down", description: "Average reduction in heat-related health risks across simulated city scenarios using optimized cooling infrastructure placement.", color: "text-green-400", bgColor: "bg-green-400/10", borderColor: "border-green-400/20" },
+  { icon: Zap, label: "Emergency Response", value: 48, suffix: "%", direction: "up", description: "Improvement in emergency response times when resources are positioned using AI-optimized placement derived from population vulnerability maps.", color: "text-blue-400", bgColor: "bg-blue-400/10", borderColor: "border-blue-400/20" },
+  { icon: Target, label: "Resource Optimization", value: 27, suffix: "%", direction: "down", description: "Reduction in redundant infrastructure spend through AI-driven analysis identifying overlap zones and underserved areas simultaneously.", color: "text-orange-400", bgColor: "bg-orange-400/10", borderColor: "border-orange-400/20" },
+  { icon: TrendingUp, label: "Planning Speed", value: 10, suffix: "x", direction: "up", description: "Faster scenario evaluation compared to traditional planning methods — what takes months of analysis now runs in seconds.", color: "text-lime-400", bgColor: "bg-lime-400/10", borderColor: "border-lime-400/20" },
 ]
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -437,10 +437,10 @@ function CityDetailBar({ cityId }: { cityId: number | null }) {
 // ─── Live Simulation Feed ─────────────────────────────────────────────────────
 
 const riskBadgeStyle: Record<keyof typeof riskConfig, string> = {
-  extreme:  "bg-red-500/20 text-red-400 border-red-500/30",
+  extreme: "bg-red-500/20 text-red-400 border-red-500/30",
   critical: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  high:     "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  medium:   "bg-lime-500/20 text-lime-400 border-lime-500/30",
+  high: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  medium: "bg-lime-500/20 text-lime-400 border-lime-500/30",
 }
 
 function LiveSimulationFeed() {
@@ -481,7 +481,7 @@ function LiveSimulationFeed() {
   }, [fetchHistory])
 
   return (
-    <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col" style={{ minHeight: 400 }}>
+    <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full min-h-[520px]">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-black/20 flex-shrink-0">
         <div className="w-8 h-8 rounded-lg bg-blue-400/20 flex items-center justify-center">
@@ -547,8 +547,8 @@ const PRIORITY_OPTIONS = [
 
 const TIMELINE_OPTIONS = [
   { label: "6 Months", value: 6 },
-  { label: "1 Year",   value: 12 },
-  { label: "5 Years",  value: 60 },
+  { label: "1 Year", value: 12 },
+  { label: "5 Years", value: 60 },
 ]
 
 function parsePlan(raw: string): { projectedScore: number | null; body: string } {
@@ -810,8 +810,8 @@ export function SimulationPreview() {
         result.riskScore >= 75
           ? "Extreme heat and limited cooling infrastructure are the top contributing factors."
           : result.riskScore >= 55
-          ? "Urban heat island effect and vulnerable population density are key risk drivers."
-          : "Moderate climate exposure with manageable infrastructure gaps identified."
+            ? "Urban heat island effect and vulnerable population density are key risk drivers."
+            : "Moderate climate exposure with manageable infrastructure gaps identified."
       setMarkerUpdate({ cityId: city.id, prevScore: city.risk, newScore: result.riskScore, riskLevel: newLevel, topFactor })
     }
   }, [])
@@ -843,10 +843,10 @@ export function SimulationPreview() {
         {/* Map + Chat + Live Feed */}
         <ScrollReveal delay={100}>
           <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-[1fr_340px_280px] gap-5">
+            <div className="grid lg:grid-cols-[1fr_340px_280px] gap-5 items-stretch">
 
               {/* Left: Leaflet Map */}
-              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col">
+              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full">
                 <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-black/20 flex-shrink-0">
                   <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-lime-300" />
@@ -862,7 +862,7 @@ export function SimulationPreview() {
                   </div>
                 </div>
 
-                <div className="relative flex-1 min-h-[360px]">
+                <div className="relative flex-1 min-h-0">
                   {!mapMounted && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/40 z-10">
                       <div className="w-8 h-8 border-2 border-lime-400/30 border-t-lime-400 rounded-full animate-spin" />
@@ -891,12 +891,12 @@ export function SimulationPreview() {
               </div>
 
               {/* Middle: AI Copilot Chat */}
-              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col" style={{ height: 520 }}>
+              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full min-h-[520px]">
                 <AICopilotChat onSimResult={handleSimResult} />
               </div>
 
               {/* Right: Live Simulation Feed */}
-              <div className="hidden lg:flex flex-col">
+              <div className="hidden lg:flex flex-col h-full">
                 <LiveSimulationFeed />
               </div>
             </div>
