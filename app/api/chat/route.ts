@@ -1,9 +1,12 @@
 export const maxDuration = 60
 
+const sessionStore: Record<string, string> = {}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json()
     const message = body.message || body.messages?.[body.messages.length - 1]?.content || "Help me analyze city risks"
+    const conversationId = body.conversationId || "default"
 
     const palantirUrl = process.env.PALANTIR_URL
     const palantirToken = process.env.PALANTIR_TOKEN
@@ -14,75 +17,46 @@ export async function POST(req: Request) {
       throw new Error("Missing Palantir environment variables")
     }
 
-    // Step 1 — Parse user intent via Palantir
-    const sessionRes = await fetch(
-      `${palantirUrl}/api/v2/aipAgents/agents/${agentRid}/sessions?preview=true`,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${palantirToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}),
-      }
-    )
+    // Reuse existing session or create new one
+    let sessionRid = sessionStore[conversationId]
 
-    if (!sessionRes.ok) {
-      const err = await sessionRes.text()
-      throw new Error(`Session creation failed ${sessionRes.status}: ${err}`)
-    }
-
-    const session = await sessionRes.json()
-    const sessionRid = session.rid
-
-    // Step 2 — Ask agent to parse the intent
-    const parseRes = await fetch(
-      `${palantirUrl}/api/v2/aipAgents/agents/${agentRid}/sessions/${sessionRid}/blockingContinue?preview=true`,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${palantirToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userInput: {
-            text: `Parse this request and return ONLY a JSON object with no other text: "${message}".
-            Return exactly: {"city_name": string or null, "cooling_centers_delta": integer or null,
-            "medical_resources_delta": integer or null, "budget_change_pct": float or null, "other_changes": string or null}`
-          }
-        }),
-      }
-    )
-
-    let parsedParams = {
-      city_name: null as string | null,
-      cooling_centers_delta: null as number | null,
-      medical_resources_delta: null as number | null,
-      budget_change_pct: null as number | null,
-      other_changes: null as string | null
-    }
-
-    if (parseRes.ok) {
-      const parseData = await parseRes.json()
-      const parseText = parseData.agentMarkdownResponse ?? ""
-      try {
-        const jsonMatch = parseText.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          parsedParams = { ...parsedParams, ...JSON.parse(jsonMatch[0]) }
+    if (!sessionRid) {
+      const sessionRes = await fetch(
+        `${palantirUrl}/api/v2/aipAgents/agents/${agentRid}/sessions?preview=true`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${palantirToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
         }
-      } catch (e) {
-        console.warn("Could not parse agent JSON response")
+      )
+
+      if (!sessionRes.ok) {
+        const err = await sessionRes.text()
+        throw new Error(`Session creation failed ${sessionRes.status}: ${err}`)
       }
+
+      const session = await sessionRes.json()
+      sessionRid = session.rid
+      sessionStore[conversationId] = sessionRid
     }
 
-    // Step 3 — Call ML model if we have a city
+    // Try to call ML model first if message mentions a city intervention
     let mlData = null
-    if (mlApiUrl && parsedParams.city_name) {
+    if (mlApiUrl) {
       try {
         const mlRes = await fetch(`${mlApiUrl}/api/predict`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(parsedParams),
+          body: JSON.stringify({
+            city_name: extractCity(message),
+            cooling_centers_delta: extractNumber(message, ["cooling center", "cooling centres"]),
+            medical_resources_delta: extractNumber(message, ["hospital", "medical", "clinic"]),
+            budget_change_pct: null,
+            other_changes: message
+          }),
         })
         if (mlRes.ok) {
           mlData = await mlRes.json()
@@ -92,9 +66,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // Step 4 — Generate insight via Palantir with ML results
-    const insightPrompt = mlData
-      ? `The user asked: "${message}"
+    // Build prompt with ML data if available
+    const prompt = mlData
+      ? `The user said: "${message}"
          ML model results for ${mlData.city_name}:
          - Previous risk score: ${mlData.previous_risk_score}/100
          - New risk score: ${mlData.new_risk_score}/100
@@ -102,27 +76,11 @@ export async function POST(req: Request) {
          - Top contributing factors: ${mlData.top_features.join(", ")}
          - Risk reduction: ${mlData.risk_reduction_pct}%
          Generate a clear, actionable 3-paragraph insight explaining these results.`
-      : `The user asked: "${message}".
-         No ML data available. Generate a helpful response about urban health risk
-         and what interventions might help, using your knowledge of city planning.`
+      : message
 
-    const insightSession = await fetch(
-      `${palantirUrl}/api/v2/aipAgents/agents/${agentRid}/sessions?preview=true`,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${palantirToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}),
-      }
-    )
-
-    const insightSessionData = await insightSession.json()
-    const insightSessionRid = insightSessionData.rid
-
-    const insightRes = await fetch(
-      `${palantirUrl}/api/v2/aipAgents/agents/${agentRid}/sessions/${insightSessionRid}/blockingContinue?preview=true`,
+    // Continue the session
+    const continueRes = await fetch(
+      `${palantirUrl}/api/v2/aipAgents/agents/${agentRid}/sessions/${sessionRid}/blockingContinue?preview=true`,
       {
         method: "POST",
         headers: {
@@ -130,22 +88,25 @@ export async function POST(req: Request) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userInput: { text: insightPrompt }
+          userInput: { text: prompt }
         }),
       }
     )
 
-    if (!insightRes.ok) {
-      const err = await insightRes.text()
-      throw new Error(`Insight generation failed ${insightRes.status}: ${err}`)
+    if (!continueRes.ok) {
+      // Session expired — create new one
+      delete sessionStore[conversationId]
+      const err = await continueRes.text()
+      throw new Error(`Continue failed ${continueRes.status}: ${err}`)
     }
 
-    const insightData = await insightRes.json()
-    const reply = insightData.agentMarkdownResponse ?? "No response from agent"
+    const data = await continueRes.json()
+    const reply = data.agentMarkdownResponse ?? "No response from agent"
 
     return Response.json({
       reply,
-      riskData: mlData
+      riskData: mlData,
+      sessionRid
     })
 
   } catch (error: any) {
@@ -155,4 +116,23 @@ export async function POST(req: Request) {
       { status: 500 }
     )
   }
+}
+
+function extractCity(message: string): string | null {
+  const cities = ["Phoenix", "Miami", "Houston", "Chicago", "Los Angeles", "New York",
+    "Dallas", "Atlanta", "Seattle", "Denver", "Las Vegas", "Portland",
+    "San Francisco", "Boston", "Detroit", "Memphis", "New Orleans"]
+  for (const city of cities) {
+    if (message.toLowerCase().includes(city.toLowerCase())) return city
+  }
+  return null
+}
+
+function extractNumber(message: string, keywords: string[]): number | null {
+  for (const keyword of keywords) {
+    const regex = new RegExp(`(\\d+)\\s*${keyword}`, 'i')
+    const match = message.match(regex)
+    if (match) return parseInt(match[1])
+  }
+  return null
 }
