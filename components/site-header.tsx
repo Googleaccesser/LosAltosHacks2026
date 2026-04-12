@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Menu, FileText, Info, Map, Cpu, LogOut, User } from "lucide-react"
+import { Menu, FileText, Info, Map, Cpu, LogOut, User, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
@@ -23,6 +23,8 @@ const links = [
   { href: "#process", label: "How It Works", icon: Info },
   { href: "/contact", label: "Contact", icon: FileText },
 ]
+
+const pricingLink = { href: "/pricing", label: "Pricing", icon: CreditCard }
 
 // ─── Google OAuth helpers ────────────────────────────────────────────────────
 
@@ -183,6 +185,15 @@ export function SiteHeader() {
                 {l.label}
               </Link>
             ))}
+            <Link
+              href={pricingLink.href}
+              className="flex items-center gap-1.5 py-2 px-4 ml-1 rounded-lg border border-lime-400/30
+                         bg-lime-400/10 text-lime-300 hover:bg-lime-400/20 hover:text-lime-200
+                         transition-all duration-200 font-medium"
+            >
+              <CreditCard className="h-3.5 w-3.5" />
+              {pricingLink.label}
+            </Link>
           </nav>
 
           {/* Desktop auth area */}
@@ -231,6 +242,15 @@ export function SiteHeader() {
                       <span className="text-sm">{l.label}</span>
                     </Link>
                   ))}
+                  <Link
+                    href={pricingLink.href}
+                    className="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg bg-lime-400/10 border border-lime-400/20 text-lime-300 hover:bg-lime-400/20 transition-colors"
+                  >
+                    <span className="inline-flex items-center justify-center w-5 h-5 text-lime-400">
+                      <CreditCard className="h-4 w-4" />
+                    </span>
+                    <span className="text-sm font-medium">{pricingLink.label}</span>
+                  </Link>
                 </nav>
 
                 {/* Mobile auth area */}

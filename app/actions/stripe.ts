@@ -31,5 +31,9 @@ export async function startCheckoutSession(productId: string) {
     redirect_on_completion: 'never',
   })
 
+  if (!session.client_secret) {
+    throw new Error('Failed to create checkout session: no client_secret returned')
+  }
+
   return session.client_secret
 }
