@@ -1,4 +1,5 @@
 import { SiteHeader } from "@/components/site-header"
+import { StatsBanner } from "@/components/stats-banner"
 import { Hero } from "@/components/hero"
 import { Features } from "@/components/features"
 import { SimulationPreview } from "@/components/simulation-preview"
@@ -32,6 +33,7 @@ export default function Page() {
     <>
       <main className="min-h-[100dvh] text-white">
         <SiteHeader />
+        <StatsBanner />
         <Hero />
         <Features />
         <SimulationPreview />
