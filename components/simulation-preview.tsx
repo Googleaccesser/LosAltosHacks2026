@@ -940,7 +940,7 @@ export function SimulationPreview() {
               </div>
 
               {/* Middle: AI Copilot Chat */}
-              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full min-h-[520px]">
+              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full min-h-[620px]">
                 <AICopilotChat onSimResult={handleSimResult} />
               </div>
 
