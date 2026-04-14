@@ -242,7 +242,9 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
   const [error, setError] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
-
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [suggestedFollowUps, setSuggestedFollowUps] = useState<string[]>([])
   const handleSend = async () => {
     const trimmed = input.trim()
     if (!trimmed || isStreaming) return
@@ -268,7 +270,19 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
       const data = await res.json()
       const reply: string = data.reply || "I encountered an issue processing your request."
 
-      const assistantMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: reply }
+      const followUps: string[] = []
+      const cleanReply = reply.replace(
+        /📌[^\n]*Suggested Follow[- ]Up Actions?:?([\s\S]*?)$/i,
+        (_, section) => {
+          section.split('\n').forEach((line: string) => {
+            const match = line.match(/^\d+\.\s+\*?\*?([^*\n]+)\*?\*?/)
+            if (match) followUps.push(match[1].replace(/\*\*/g, '').trim())
+          })
+          return ''
+        }
+      ).trim()
+      setSuggestedFollowUps(followUps.slice(0, 3))
+      const assistantMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: cleanReply }
       setMessages((prev) => [...prev, assistantMsg])
 
       const cityMatch = cityHotspots.find((c) => reply.toLowerCase().includes(c.name.toLowerCase()))
@@ -315,7 +329,7 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 scroll-smooth">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 scroll-smooth" style={{ maxHeight: "420px", overflowY: "auto" }}>
         {error && (
           <div className="flex gap-2.5 justify-start">
             <div className="w-7 h-7 rounded-full bg-red-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -385,7 +399,22 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
           </div>
         )}
       </div>
-
+      {suggestedFollowUps.length > 0 && !isStreaming && (
+        <div className="px-3 pb-2 flex flex-col gap-1.5">
+          {suggestedFollowUps.map((prompt, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setInput(prompt)
+                setSuggestedFollowUps([])
+              }}
+              className="text-left text-[11px] text-lime-300/70 border border-lime-300/20 rounded-lg px-3 py-2 hover:bg-lime-300/10 hover:border-lime-300/40 transition-all"
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="px-3 py-3 border-t border-white/10 bg-black/20 flex-shrink-0">
         <div className="flex items-center gap-2">
           <input
