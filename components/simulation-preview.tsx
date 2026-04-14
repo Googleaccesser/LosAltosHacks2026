@@ -242,7 +242,9 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
   const [error, setError] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
-
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [suggestedFollowUps, setSuggestedFollowUps] = useState<string[]>([])
   const handleSend = async () => {
     const trimmed = input.trim()
     if (!trimmed || isStreaming) return
@@ -268,7 +270,19 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
       const data = await res.json()
       const reply: string = data.reply || "I encountered an issue processing your request."
 
-      const assistantMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: reply }
+      const followUps: string[] = []
+      const cleanReply = reply.replace(
+        /📌[^\n]*Suggested Follow[- ]Up Actions?:?([\s\S]*?)$/i,
+        (_, section) => {
+          section.split('\n').forEach((line: string) => {
+            const match = line.match(/^\d+\.\s+\*?\*?([^*\n]+)\*?\*?/)
+            if (match) followUps.push(match[1].replace(/\*\*/g, '').trim())
+          })
+          return ''
+        }
+      ).trim()
+      setSuggestedFollowUps(followUps.slice(0, 3))
+      const assistantMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: cleanReply }
       setMessages((prev) => [...prev, assistantMsg])
 
       const cityMatch = cityHotspots.find((c) => reply.toLowerCase().includes(c.name.toLowerCase()))
