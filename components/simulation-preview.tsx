@@ -399,7 +399,22 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
           </div>
         )}
       </div>
-
+      {suggestedFollowUps.length > 0 && !isStreaming && (
+        <div className="px-3 pb-2 flex flex-col gap-1.5">
+          {suggestedFollowUps.map((prompt, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setInput(prompt)
+                setSuggestedFollowUps([])
+              }}
+              className="text-left text-[11px] text-lime-300/70 border border-lime-300/20 rounded-lg px-3 py-2 hover:bg-lime-300/10 hover:border-lime-300/40 transition-all"
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="px-3 py-3 border-t border-white/10 bg-black/20 flex-shrink-0">
         <div className="flex items-center gap-2">
           <input
