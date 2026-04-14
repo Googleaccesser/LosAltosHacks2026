@@ -242,8 +242,6 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
   const [error, setError] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [isStreaming, setIsStreaming] = useState(false)
   const [suggestedFollowUps, setSuggestedFollowUps] = useState<string[]>([])
   const handleSend = async () => {
     const trimmed = input.trim()
@@ -271,16 +269,28 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
       const reply: string = data.reply || "I encountered an issue processing your request."
 
       const followUps: string[] = []
-      const cleanReply = reply.replace(
-        /📌[^\n]*Suggested Follow[- ]Up Actions?:?([\s\S]*?)$/i,
-        (_, section) => {
+      // Try multiple patterns to catch the follow-up section
+      const followUpPatterns = [
+        /(?:📌|🔖|💡)[^\n]*(?:Suggested|Follow[- ]Up|Next)[^\n]*\n([\s\S]*?)$/i,
+        /(?:Suggested Follow[- ]Up Actions?|Next Steps?|What(?:'s| is) Next)[^\n]*\n([\s\S]*?)$/i,
+        /\n\n(?:\d+\.\s+.+\n?){2,}$/,
+      ]
+
+      let cleanReply = reply
+      for (const pattern of followUpPatterns) {
+        const matched = cleanReply.match(pattern)
+        if (matched) {
+          const section = matched[1] || matched[0]
           section.split('\n').forEach((line: string) => {
-            const match = line.match(/^\d+\.\s+\*?\*?([^*\n]+)\*?\*?/)
+            const match = line.match(/^\d+\.\s+\*?\*?([^*\n]{10,})\*?\*?/)
             if (match) followUps.push(match[1].replace(/\*\*/g, '').trim())
           })
-          return ''
+          if (followUps.length > 0) {
+            cleanReply = cleanReply.replace(pattern, '').trim()
+            break
+          }
         }
-      ).trim()
+      }
       setSuggestedFollowUps(followUps.slice(0, 3))
       const assistantMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: cleanReply }
       setMessages((prev) => [...prev, assistantMsg])
@@ -329,7 +339,7 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 scroll-smooth" style={{ maxHeight: "420px", overflowY: "auto" }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 scroll-smooth">
         {error && (
           <div className="flex gap-2.5 justify-start">
             <div className="w-7 h-7 rounded-full bg-red-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -930,7 +940,7 @@ export function SimulationPreview() {
               </div>
 
               {/* Middle: AI Copilot Chat */}
-              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full min-h-[520px]">
+              <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden flex flex-col h-full min-h-[620px]">
                 <AICopilotChat onSimResult={handleSimResult} />
               </div>
 
