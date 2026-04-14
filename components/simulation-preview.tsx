@@ -350,7 +350,17 @@ function AICopilotChat({ onSimResult }: { onSimResult: (result: SimResult) => vo
               )}
               <div
                 className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.role === "user" ? "bg-lime-400 text-black font-medium" : "bg-white/5 text-white border border-white/10"}`}
-                dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") }}
+                dangerouslySetInnerHTML={{
+                  __html: msg.content
+                    .replace(/^## (.+)$/gm, '<h3 style="color:white;font-weight:700;font-size:14px;margin:12px 0 6px;">$1</h3>')
+                    .replace(/^### (.+)$/gm, '<h4 style="color:rgba(255,255,255,0.8);font-weight:600;font-size:13px;margin:10px 0 4px;">$1</h4>')
+                    .replace(/^---$/gm, '<hr style="border-color:rgba(255,255,255,0.1);margin:10px 0;"/>')
+                    .replace(/^\* (.+)$/gm, '<div style="display:flex;gap:6px;margin-bottom:4px;"><span style="color:#a3e635;">•</span><span>$1</span></div>')
+                    .replace(/^(\d+)\. (.+)$/gm, '<div style="display:flex;gap:6px;margin-bottom:4px;"><span style="color:#a3e635;font-weight:700;">$1.</span><span>$2</span></div>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong style="color:white;">$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n/g, '<br/>')
+                }}
               />
               {msg.role === "user" && (
                 <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
